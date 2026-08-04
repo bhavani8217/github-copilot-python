@@ -68,13 +68,24 @@ def count_solutions(board, limit=2):
 
 
 def remove_cells(board, clues):
-    attempts = SIZE * SIZE - clues
-    while attempts > 0:
-        row = random.randrange(SIZE)
-        col = random.randrange(SIZE)
-        if board[row][col] != EMPTY:
-            board[row][col] = EMPTY
-            attempts -= 1
+    target_removed = SIZE * SIZE - clues
+    removed = 0
+    cells = [(row, col) for row in range(SIZE) for col in range(SIZE)]
+    random.shuffle(cells)
+
+    for row, col in cells:
+        if removed >= target_removed:
+            break
+        if board[row][col] == EMPTY:
+            continue
+
+        original = board[row][col]
+        board[row][col] = EMPTY
+        if count_solutions(board) != 1:
+            board[row][col] = original
+            continue
+
+        removed += 1
 
 
 def resolve_clues(clues=None, difficulty=None):

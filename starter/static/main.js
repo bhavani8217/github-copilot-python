@@ -1,12 +1,41 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 const LEADERBOARD_KEY = 'sudoku-top-10-leaderboard';
+const THEME_KEY = 'sudoku-theme';
 let puzzle = [];
 let elapsedSeconds = 0;
 let timerId = null;
 let hintsUsed = 0;
 let currentDifficulty = 'medium';
 let gameCompleted = false;
+
+function applyTheme(theme) {
+  const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+  document.body.dataset.theme = normalizedTheme;
+  const toggleButton = document.getElementById('theme-toggle');
+  if (toggleButton) {
+    toggleButton.textContent = normalizedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+  try {
+    localStorage.setItem(THEME_KEY, normalizedTheme);
+  } catch (error) {
+    // Ignore localStorage write failures gracefully.
+  }
+}
+
+function loadTheme() {
+  try {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    applyTheme(savedTheme || 'light');
+  } catch (error) {
+    applyTheme('light');
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.body.dataset.theme === 'dark' ? 'dark' : 'light';
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -311,9 +340,11 @@ async function showHint() {
 
 // Wire buttons
 window.addEventListener('load', () => {
+  loadTheme();
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint-button').addEventListener('click', showHint);
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   renderLeaderboard();
   // initialize
   newGame();
