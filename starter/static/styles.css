@@ -44,6 +44,11 @@ h1 {
     color: #333;
 }
 
+.sudoku-cell.invalid {
+    background: #ffebee;
+    border-color: #d32f2f;
+}
+
 .sudoku-cell.incorrect {
     background: #ffcdd2;
 }
