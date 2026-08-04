@@ -95,3 +95,39 @@ button:hover {
     font-size: 16px;
     color: #d32f2f;
 }
+
+.leaderboard {
+    width: min(640px, calc(100% - 32px));
+    margin: 0 auto 40px auto;
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.leaderboard h2 {
+    margin: 0 0 12px 0;
+    color: #333;
+}
+
+#leaderboard-list {
+    margin: 0;
+    padding-left: 24px;
+    text-align: left;
+}
+
+#leaderboard-list li {
+    margin: 8px 0;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#leaderboard-list li:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-empty {
+    list-style: none;
+    padding-left: 0;
+    color: #666;
+}

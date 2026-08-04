@@ -1,8 +1,12 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
+const LEADERBOARD_KEY = 'sudoku-top-10-leaderboard';
 let puzzle = [];
 let elapsedSeconds = 0;
 let timerId = null;
+let hintsUsed = 0;
+let currentDifficulty = 'medium';
+let gameCompleted = false;
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -32,6 +36,86 @@ function stopTimer() {
     window.clearInterval(timerId);
     timerId = null;
   }
+}
+
+function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_KEY);
+    const entries = raw ? JSON.parse(raw) : [];
+    return Array.isArray(entries) ? entries : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveLeaderboard(entries) {
+  try {
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(entries));
+  } catch (error) {
+    // Ignore localStorage write failures gracefully.
+  }
+}
+
+function renderLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  const entries = loadLeaderboard();
+
+  leaderboardList.innerHTML = '';
+  if (entries.length === 0) {
+    const item = document.createElement('li');
+    item.className = 'leaderboard-empty';
+    item.textContent = 'No scores yet — solve a puzzle to set the first record.';
+    leaderboardList.appendChild(item);
+    return;
+  }
+
+  entries.slice(0, 10).forEach((entry, index) => {
+    const item = document.createElement('li');
+    item.textContent = `#${index + 1} ${entry.name} — ${formatTime(entry.timeSeconds)} — ${entry.difficulty} — hints: ${entry.hintsUsed}`;
+    leaderboardList.appendChild(item);
+  });
+}
+
+function updateLeaderboard(entry) {
+  const entries = loadLeaderboard();
+  entries.push(entry);
+  entries.sort((left, right) => {
+    if (left.timeSeconds !== right.timeSeconds) {
+      return left.timeSeconds - right.timeSeconds;
+    }
+    if (left.hintsUsed !== right.hintsUsed) {
+      return left.hintsUsed - right.hintsUsed;
+    }
+    return left.recordedAt - right.recordedAt;
+  });
+  saveLeaderboard(entries.slice(0, 10));
+  renderLeaderboard();
+}
+
+function promptForLeaderboardName() {
+  const playerName = window.prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
+  if (playerName === null) {
+    return null;
+  }
+  return playerName.trim() || 'Player';
+}
+
+function recordLeaderboardEntryIfCompleted() {
+  if (gameCompleted) {
+    return;
+  }
+  const playerName = window.prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
+  if (playerName === null) {
+    return;
+  }
+  gameCompleted = true;
+  updateLeaderboard({
+    name: playerName.trim() || 'Player',
+    timeSeconds: elapsedSeconds,
+    difficulty: currentDifficulty,
+    hintsUsed,
+    recordedAt: Date.now()
+  });
 }
 
 function setCellClasses(inp, { isPrefilled = false, isIncorrect = false, isInvalid = false } = {}) {
@@ -151,8 +235,10 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
-  const difficulty = document.getElementById('difficulty-select').value;
-  const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
+  currentDifficulty = document.getElementById('difficulty-select').value;
+  hintsUsed = 0;
+  gameCompleted = false;
+  const res = await fetch(`/new?difficulty=${encodeURIComponent(currentDifficulty)}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
   resetTimer();
@@ -187,6 +273,7 @@ async function checkSolution() {
     stopTimer();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
+    recordLeaderboardEntryIfCompleted();
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect.';
@@ -216,6 +303,7 @@ async function showHint() {
   }
   inp.value = data.value;
   inp.disabled = true;
+  hintsUsed += 1;
   setCellClasses(inp, { isPrefilled: true });
   msg.style.color = '#1976d2';
   msg.innerText = 'Hint applied.';
@@ -226,6 +314,7 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint-button').addEventListener('click', showHint);
+  renderLeaderboard();
   // initialize
   newGame();
 });
