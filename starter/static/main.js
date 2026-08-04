@@ -1,6 +1,38 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+let elapsedSeconds = 0;
+let timerId = null;
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timer').innerText = formatTime(elapsedSeconds);
+}
+
+function resetTimer() {
+  elapsedSeconds = 0;
+  updateTimerDisplay();
+}
+
+function startTimer() {
+  stopTimer();
+  timerId = window.setInterval(() => {
+    elapsedSeconds += 1;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerId !== null) {
+    window.clearInterval(timerId);
+    timerId = null;
+  }
+}
 
 function setCellClasses(inp, { isPrefilled = false, isIncorrect = false, isInvalid = false } = {}) {
   inp.className = 'sudoku-cell';
@@ -123,6 +155,8 @@ async function newGame() {
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
+  resetTimer();
+  startTimer();
   document.getElementById('message').innerText = '';
 }
 
@@ -150,6 +184,7 @@ async function checkSolution() {
     setCellClasses(inp, { isIncorrect: incorrect.has(idx) });
   }
   if (incorrect.size === 0) {
+    stopTimer();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
   } else {
