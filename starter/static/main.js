@@ -48,7 +48,8 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
-  const res = await fetch('/new');
+  const difficulty = document.getElementById('difficulty-select').value;
+  const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
@@ -96,10 +97,49 @@ async function checkSolution() {
   }
 }
 
+async function showHint() {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const board = [];
+  for (let i = 0; i < SIZE; i++) {
+    board[i] = [];
+    for (let j = 0; j < SIZE; j++) {
+      const idx = i * SIZE + j;
+      const val = inputs[idx].value;
+      board[i][j] = val ? parseInt(val, 10) : 0;
+    }
+  }
+  const res = await fetch('/hint', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({board})
+  });
+  const data = await res.json();
+  const msg = document.getElementById('message');
+  if (data.error) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = data.error;
+    return;
+  }
+  const idx = data.row * SIZE + data.col;
+  const inp = inputs[idx];
+  if (!inp || inp.disabled) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = 'No available hint.';
+    return;
+  }
+  inp.value = data.value;
+  inp.disabled = true;
+  inp.className = 'sudoku-cell prefilled';
+  msg.style.color = '#1976d2';
+  msg.innerText = 'Hint applied.';
+}
+
 // Wire buttons
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+  document.getElementById('hint-button').addEventListener('click', showHint);
   // initialize
   newGame();
 });

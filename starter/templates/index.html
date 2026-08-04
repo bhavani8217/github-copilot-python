@@ -7,12 +7,19 @@
 </head>
 <body>
   <h1>Sudoku Game</h1>
-  <div id="sudoku-board"></div>
   <div class="controls">
+    <label for="difficulty-select">Difficulty:</label>
+    <select id="difficulty-select">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+    </select>
     <button id="new-game">New Game</button>
     <button id="check-solution">Check Solution</button>
+    <button id="hint-button">Hint</button>
     <span id="message"></span>
   </div>
+  <div id="sudoku-board"></div>
   <script src="/static/main.js"></script>
 </body>
 </html>
