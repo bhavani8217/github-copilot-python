@@ -30,8 +30,18 @@ def check_solution():
     data = request.json
     board = data.get('board')
     solution = CURRENT.get('solution')
+    puzzle = CURRENT.get('puzzle')
     if solution is None:
         return jsonify({'error': 'No game in progress'}), 400
+    if puzzle is None:
+        return jsonify({'error': 'No game in progress'}), 400
+
+    board = [row[:] for row in board]
+    for i in range(sudoku_logic.SIZE):
+        for j in range(sudoku_logic.SIZE):
+            if puzzle[i][j] != sudoku_logic.EMPTY:
+                board[i][j] = puzzle[i][j]
+
     incorrect = []
     for i in range(sudoku_logic.SIZE):
         for j in range(sudoku_logic.SIZE):
@@ -45,7 +55,10 @@ def get_hint():
     data = request.json or {}
     board = data.get('board')
     solution = CURRENT.get('solution')
+    puzzle = CURRENT.get('puzzle')
     if solution is None:
+        return jsonify({'error': 'No game in progress'}), 400
+    if puzzle is None:
         return jsonify({'error': 'No game in progress'}), 400
     if board is None:
         return jsonify({'error': 'Invalid board'}), 400
@@ -54,6 +67,13 @@ def get_hint():
     for row in board:
         if len(row) != sudoku_logic.SIZE:
             return jsonify({'error': 'Invalid board'}), 400
+
+    board = [row[:] for row in board]
+    for i in range(sudoku_logic.SIZE):
+        for j in range(sudoku_logic.SIZE):
+            if puzzle[i][j] != sudoku_logic.EMPTY:
+                board[i][j] = puzzle[i][j]
+
     for i in range(sudoku_logic.SIZE):
         for j in range(sudoku_logic.SIZE):
             if board[i][j] == sudoku_logic.EMPTY:

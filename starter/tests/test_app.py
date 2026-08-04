@@ -44,14 +44,21 @@ def test_check_solution_returns_empty_incorrect_list_for_correct_board(client):
 
 def test_check_solution_reports_wrong_cells(client):
     client.get('/new?clues=35')
+    puzzle = [row[:] for row in CURRENT['puzzle']]
     solution = CURRENT['solution']
+    row = 0
+    col = 0
+    while puzzle[row][col] != 0:
+        row = (row + 1) % 9
+        col = (col + 1) % 9
+
     board = [row[:] for row in solution]
-    board[0][0] = 9
+    board[row][col] = 9
 
     response = client.post('/check', json={'board': board})
 
     assert response.status_code == 200
-    assert response.get_json() == {'incorrect': [[0, 0]]}
+    assert response.get_json() == {'incorrect': [[row, col]]}
 
 
 def test_check_solution_without_game_returns_error(client):
@@ -75,6 +82,49 @@ def test_hint_returns_one_correct_value_for_an_empty_cell(client):
     assert board[data['row']][data['col']] == 0
     assert data['value'] == solution[data['row']][data['col']]
     assert data['value'] != 0
+
+
+def test_check_solution_ignores_mutations_to_original_clue_cells(client):
+    client.get('/new?clues=35')
+    solution = CURRENT['solution']
+    puzzle = [row[:] for row in CURRENT['puzzle']]
+
+    row = 0
+    col = 0
+    while puzzle[row][col] == 0:
+        row = (row + 1) % 9
+        col = (col + 1) % 9
+
+    board = [row[:] for row in solution]
+    board[row][col] = puzzle[row][col] + 1
+
+    response = client.post('/check', json={'board': board})
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert [row, col] not in data['incorrect']
+
+
+def test_hint_restores_original_clue_cells_before_searching_for_an_empty_cell(client):
+    client.get('/new?clues=35')
+    puzzle = [row[:] for row in CURRENT['puzzle']]
+    solution = CURRENT['solution']
+
+    row = 0
+    col = 0
+    while puzzle[row][col] == 0:
+        row = (row + 1) % 9
+        col = (col + 1) % 9
+
+    board = [row[:] for row in puzzle]
+    board[row][col] = 0
+
+    response = client.post('/hint', json={'board': board})
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert (data['row'], data['col']) != (row, col)
+    assert data['value'] == solution[data['row']][data['col']]
 
 
 def test_hint_does_not_alter_cells_that_are_already_filled(client):
