@@ -229,6 +229,10 @@ function createBoardElement() {
       input.className = 'sudoku-cell';
       input.dataset.row = i;
       input.dataset.col = j;
+      const blockRow = Math.floor(i / 3);
+      const blockCol = Math.floor(j / 3);
+      const isAlternatingBlock = (blockRow + blockCol) % 2 === 0;
+      input.style.setProperty('--cell-bg', isAlternatingBlock ? 'var(--cell-bg-alt)' : 'var(--cell-bg)');
       input.addEventListener('input', (e) => {
         const val = e.target.value.replace(/[^1-9]/g, '');
         e.target.value = val;

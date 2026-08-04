@@ -2,30 +2,33 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sudoku Game</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <div class="controls">
-    <label for="difficulty-select">Difficulty:</label>
-    <select id="difficulty-select">
-      <option value="easy">Easy</option>
-      <option value="medium" selected>Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-    <button id="new-game">New Game</button>
-    <button id="check-solution">Check Solution</button>
-    <button id="hint-button">Hint</button>
-    <button id="theme-toggle" type="button">Dark Mode</button>
-    <span class="timer-display">Time: <span id="timer">00:00</span></span>
-    <span id="message"></span>
+  <div class="app-shell">
+    <h1>Sudoku Game</h1>
+    <div class="controls">
+      <label for="difficulty-select">Difficulty:</label>
+      <select id="difficulty-select">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button id="new-game">New Game</button>
+      <button id="check-solution">Check Solution</button>
+      <button id="hint-button">Hint</button>
+      <button id="theme-toggle" type="button">Dark Mode</button>
+      <span class="timer-display">Time: <span id="timer">00:00</span></span>
+      <span id="message"></span>
+    </div>
+    <div id="sudoku-board"></div>
+    <section class="leaderboard" aria-labelledby="leaderboard-title">
+      <h2 id="leaderboard-title">Top 10 Leaderboard</h2>
+      <ol id="leaderboard-list"></ol>
+    </section>
   </div>
-  <div id="sudoku-board"></div>
-  <section class="leaderboard" aria-labelledby="leaderboard-title">
-    <h2 id="leaderboard-title">Top 10 Leaderboard</h2>
-    <ol id="leaderboard-list"></ol>
-  </section>
   <script src="/static/main.js"></script>
 </body>
 </html>
